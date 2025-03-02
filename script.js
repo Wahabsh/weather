@@ -15,33 +15,51 @@ document.addEventListener("DOMContentLoaded", function () {
     const currentDateTxt = document.querySelector('.current-date-txt');
 
     const forecastItemsContainer = document.querySelector('.forecast-items-container');
-
+    
     const apikey = '202940118cef4f4780574500250203'; // 🔹 Replace with your WeatherAPI key
 
-    function getUserLocation() {
+    // Function to Get User Location (Geolocation API)
+    function getLocation() {
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const lat = position.coords.latitude;
-                    const lon = position.coords.longitude;
-                    updateWeatherByCoords(lat, lon);
-                },
-                (error) => {
-                    console.error("Geolocation error:", error);
-                    showDisplaySection(notFoundSection);
-                }
-            );
+            navigator.geolocation.getCurrentPosition(showPosition, showError);
         } else {
-            console.error("Geolocation not supported!");
+            console.error("Geolocation is not supported by this browser.");
             showDisplaySection(notFoundSection);
         }
     }
 
+    // Function to Fetch Weather Using Coordinates
+    function showPosition(position) {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        updateWeatherByCoords(lat, lon);
+    }
+
+    function showError(error) {
+        switch(error.code) {
+            case error.PERMISSION_DENIED:
+                console.error("User denied the request for Geolocation.");
+                break;
+            case error.POSITION_UNAVAILABLE:
+                console.error("Location information is unavailable.");
+                break;
+            case error.TIMEOUT:
+                console.error("The request to get user location timed out.");
+                break;
+            case error.UNKNOWN_ERROR:
+                console.error("An unknown error occurred.");
+                break;
+        }
+        showDisplaySection(notFoundSection);
+    }
+
+    // Function to Fetch Weather Data
     async function getFetchData(url) {
         const response = await fetch(url);
         return await response.json();
     }
 
+    // Function to Update Weather Using Coordinates
     async function updateWeatherByCoords(lat, lon) {
         try {
             const weatherUrl = `https://api.weatherapi.com/v1/forecast.json?key=${apikey}&q=${lat},${lon}&days=7&aqi=no&alerts=no`;
@@ -179,5 +197,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    getUserLocation();
+    // Automatically Get User Location on Page Load
+    getLocation();
 });
